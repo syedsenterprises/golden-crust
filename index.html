@@ -26,6 +26,10 @@ header{max-width:1020px;margin:0 auto;padding:20px 22px;display:flex;justify-con
 .ok{background:#2e4a2e;color:#d8f0d8;padding:12px;border-radius:10px;margin-top:12px;display:none}
 footer{text-align:center;color:#7a5c40;padding:22px;font-size:13px}
 @media(max-width:700px){.menu{grid-template-columns:1fr}.hero h1{font-size:40px}}
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,90px);background:#1f2937;color:#fff;padding:15px 20px;border-radius:999px;font-weight:600;box-shadow:0 12px 30px rgba(0,0,0,.35);transition:.3s;z-index:50;opacity:0;pointer-events:none;max-width:92vw;text-align:center}
+.toast.show{transform:translate(-50%,0);opacity:1;pointer-events:auto}
+.toast button{background:#f5b971;color:#fff;border:0;padding:7px 14px;border-radius:999px;margin-left:12px;cursor:pointer;font-weight:700}
+.pulse{animation:pulse .5s}@keyframes pulse{50%{transform:scale(1.12)}}
 </style></head><body>
 <header><div class="logo">Golden <span>Crust</span></div><button class="btn" onclick="document.querySelector('.order').scrollIntoView()">Your order</button></header>
 <section class="hero"><h1>Baked at dawn.<br/>Gone by noon.</h1><p>Small-batch breads, cakes and pastries from a wood-fired oven. Build your pickup order below — it saves as you add.</p></section>
@@ -38,12 +42,15 @@ footer{text-align:center;color:#7a5c40;padding:22px;font-size:13px}
 <select id="otime"><option>08:00</option><option>09:00</option><option>10:00</option><option>11:00</option><option>12:00</option></select>
 <button class="btn" style="background:#f5b971;color:#3b2a1a;width:100%;margin-top:10px" onclick="placeOrder()">Place pickup order →</button><div class="ok" id="ok"></div></section>
 <footer>Golden Crust demo theme · Static site — orders saved in your browser. No payment taken; connect an ordering system to take real orders.</footer>
-<script>
+<div class="toast" id="toast"></div><script>
 const M=[{id:1,n:'Country Sourdough',d:'48-hour ferment, stone-milled flour',p:8.50,g:'m1'},{id:2,n:'Butter Croissant',d:'27 layers, French butter',p:4.20,g:'m1'},{id:3,n:'Cinnamon Morning Bun',d:'Soft, sticky, gone fast',p:4.80,g:'m1'},{id:4,n:'Rosemary Focaccia',d:'Olive oil, sea salt, fresh rosemary',p:7.00,g:'m1'},{id:5,n:'Basque Cheesecake',d:'Burnt top, molten middle',p:6.50,g:'m2'},{id:6,n:'Chocolate Babka',d:'Swirled, rich, shareable',p:9.00,g:'m2'},{id:7,n:'Lemon Drizzle Loaf',d:'Bright, sharp, old-school',p:7.50,g:'m2'},{id:8,n:'Seasonal Fruit Tart',d:'Changes with the market',p:6.00,g:'m2'}];
 let cart=JSON.parse(localStorage.getItem('gb_cart')||'{}');
 function save(){localStorage.setItem('gb_cart',JSON.stringify(cart));renderCart()}
 function menu(){for(let g of ['m1','m2']){document.getElementById(g).innerHTML=M.filter(x=>x.g===g).map(x=>`<div class="item"><div><b>${x.n}</b><p>${x.d}</p></div><span>$${x.p.toFixed(2)}</span><button onclick="add(${x.id})">Add +</button></div>`).join('')}}
-function add(id){cart[id]=(cart[id]||0)+1;save()}
+function showToast(msg){let t=document.getElementById('toast');t.innerHTML=msg+' <button onclick="viewOrder()">View order</button>';t.classList.add('show');let cb=document.querySelector('header .btn');if(cb){cb.classList.remove('pulse');void cb.offsetWidth;cb.classList.add('pulse')}clearTimeout(window._tt);window._tt=setTimeout(hideToast,3000)}
+function hideToast(){document.getElementById('toast').classList.remove('show')}
+function viewOrder(){document.querySelector('.order').scrollIntoView();hideToast()}
+function add(id){cart[id]=(cart[id]||0)+1;save();let x=M.find(m=>m.id==id);showToast('✓ 1 item added to your order — '+x.n)}
 function chg(id,d){cart[id]=(cart[id]||0)+d;if(cart[id]<=0)delete cart[id];save()}
 function renderCart(){let tot=0,html='';for(let id in cart){let x=M.find(m=>m.id==id),q=cart[id];tot+=x.p*q;html+=`<div class="line"><span>${x.n}</span><span class="qty"><button onclick="chg(${id},-1)">−</button> ${q} <button onclick="chg(${id},1)">+</button></span><span>$${(x.p*q).toFixed(2)}</span></div>`}
 document.getElementById('lines').innerHTML=html||'<p>No items yet — add something from the menu.</p>';document.getElementById('tot').textContent='$'+tot.toFixed(2)}
