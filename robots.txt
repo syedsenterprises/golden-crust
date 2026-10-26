@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://syedsenterprises.github.io/golden-crust/sitemap.xml
